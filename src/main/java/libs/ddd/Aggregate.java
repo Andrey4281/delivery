@@ -2,13 +2,11 @@ package libs.ddd;
 
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Transient;
-
 import java.util.ArrayList;
 import java.util.List;
 
 @MappedSuperclass
-public abstract class Aggregate<TId extends Comparable<TId>> extends BaseEntity<TId> implements AggregateRoot<TId> {
-
+public abstract class Aggregate<IdT extends Comparable<IdT>> extends BaseEntity<IdT> implements AggregateRoot<IdT> {
     @Transient
     protected List<DomainEvent> domainEvents = new ArrayList<>();
 
@@ -16,7 +14,7 @@ public abstract class Aggregate<TId extends Comparable<TId>> extends BaseEntity<
         this.domainEvents = new ArrayList<>();
     }
 
-    protected Aggregate(TId id) {
+    protected Aggregate(IdT id) {
         super(id);
         this.domainEvents = new ArrayList<>();
     }

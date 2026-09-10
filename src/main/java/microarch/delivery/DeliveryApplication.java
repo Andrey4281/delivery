@@ -8,13 +8,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
 @EnableJpaRepositories(basePackages = "microarch.delivery.adapters.out.postgres")
-@EntityScan(basePackages = { "microarch.delivery.core.domain.model",
-        "microarch.delivery.adapters.out.postgres.outbox" })
+@EntityScan(basePackages = { "microarch.delivery.core.domain.model", "microarch.delivery.adapters.out.postgres.outbox" })
 @SpringBootApplication
 public class DeliveryApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(DeliveryApplication.class, args);
     }
-
 }

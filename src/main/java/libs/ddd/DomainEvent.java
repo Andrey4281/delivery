@@ -1,11 +1,10 @@
 package libs.ddd;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
-import org.springframework.context.ApplicationEvent;
-
 import java.time.Instant;
 import java.util.UUID;
+import lombok.Getter;
+import org.springframework.context.ApplicationEvent;
 
 @Getter
 public abstract class DomainEvent extends ApplicationEvent {

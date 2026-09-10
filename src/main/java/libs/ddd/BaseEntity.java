@@ -3,21 +3,20 @@ package libs.ddd;
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
-import lombok.Getter;
-
 import java.util.Objects;
+import lombok.Getter;
 
 @Getter
 @MappedSuperclass
-public abstract class BaseEntity<TId extends Comparable<TId>> implements Comparable<BaseEntity<TId>> {
+public abstract class BaseEntity<IdT extends Comparable<IdT>> implements Comparable<BaseEntity<IdT>> {
     @Id
     @Column(name = "id")
-    protected TId id;
+    protected IdT id;
 
     protected BaseEntity() {
     }
 
-    protected BaseEntity(TId id) {
+    protected BaseEntity(IdT id) {
         this.id = id;
     }
 
@@ -25,27 +24,27 @@ public abstract class BaseEntity<TId extends Comparable<TId>> implements Compara
         return id == null || id.equals(defaultValue());
     }
 
-    protected TId defaultValue() {
+    protected IdT defaultValue() {
         return null;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null)
+        if (obj == null) {
             return false;
-
-        if (this == obj)
+        }
+        if (this == obj) {
             return true;
-
-        if (!(obj instanceof BaseEntity<?> other))
+        }
+        if (!(obj instanceof BaseEntity<?> other)) {
             return false;
-
-        if (!this.getClass().equals(other.getClass()))
+        }
+        if (!this.getClass().equals(other.getClass())) {
             return false;
-
-        if (this.isTransient() || other.isTransient())
+        }
+        if (this.isTransient() || other.isTransient()) {
             return false;
-
+        }
         return Objects.equals(this.id, other.id);
     }
 
@@ -55,13 +54,13 @@ public abstract class BaseEntity<TId extends Comparable<TId>> implements Compara
     }
 
     @Override
-    public int compareTo(BaseEntity<TId> other) {
-        if (other == null)
+    public int compareTo(BaseEntity<IdT> other) {
+        if (other == null) {
             return 1;
-
-        if (this == other)
+        }
+        if (this == other) {
             return 0;
-
+        }
         return this.id.compareTo(other.id);
     }
 }

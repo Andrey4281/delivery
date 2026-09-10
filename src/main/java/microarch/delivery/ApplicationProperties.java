@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "app")
 public class ApplicationProperties {
-
     private final Grpc grpc = new Grpc();
     private final Kafka kafka = new Kafka();
 

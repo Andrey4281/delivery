@@ -264,7 +264,13 @@
                 <configuration>
                     <configLocation>config/checkstyle/checkstyle.xml</configLocation>
                     <encoding>UTF-8</encoding>
-                    <failOnViolation>false</failOnViolation>
+                    <failOnViolation>true</failOnViolation>
+                    <!-- Проверяем только рукописный код: без этого в проверку попадают
+                         сгенерированные классы из target/generated-sources (openapi, protobuf) -->
+                    <sourceDirectories>
+                        <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+                        <sourceDirectory>${project.basedir}/src/test/java</sourceDirectory>
+                    </sourceDirectories>
                 </configuration>
                 <executions>
                     <execution>
@@ -289,6 +295,9 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <!-- Профиль синхронизирован со стилем проекта (.editorconfig/checkstyle):
+                         180 колонок, continuation 4 — иначе formatter конфликтует с checkstyle -->
+                    <configFile>${project.basedir}/config/formatter/eclipse-formatter.xml</configFile>
                     <removeUnusedImports>true</removeUnusedImports>
                     <lineEnding>LF</lineEnding>
                 </configuration>
