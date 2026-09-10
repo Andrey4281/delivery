@@ -3,9 +3,7 @@ package libs.errs;
 import java.util.Objects;
 
 public final class Error {
-
     private static final String SEPARATOR = "||";
-
     private final String code;
     private final String message;
 
@@ -36,13 +34,10 @@ public final class Error {
         if ("A non-empty request body is required.".equals(serialized)) {
             return GeneralErrors.valueIsRequired("serialized");
         }
-
         String[] parts = serialized.split("\\|\\|");
-
         if (parts.length < 2) {
             throw new IllegalArgumentException("Invalid error serialization: '" + serialized + "'");
         }
-
         return new Error(parts[0], parts[1]);
     }
 
@@ -52,18 +47,20 @@ public final class Error {
     // public void throwException() {
     // throw new DomainInvariantException(this);
     // }
-
     public static void throwIf(Error error) {
-        if (error != null)
+        if (error != null) {
             throw new DomainInvariantException(error);
+        }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (!(o instanceof Error error))
+        }
+        if (!(o instanceof Error error)) {
             return false;
+        }
         return Objects.equals(code, error.code) && Objects.equals(message, error.message);
     }
 

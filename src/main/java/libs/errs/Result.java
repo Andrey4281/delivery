@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Result<T, E extends Error> {
-
     private final T value;
     private final E error;
     private final boolean isSuccess;
@@ -17,7 +16,6 @@ public class Result<T, E extends Error> {
     }
 
     /* ---------- factory ---------- */
-
     public static <T, E extends Error> Result<T, E> success(T value) {
         Objects.requireNonNull(value);
         return new Result<>(value, null, true);
@@ -33,7 +31,6 @@ public class Result<T, E extends Error> {
     }
 
     /* ---------- state ---------- */
-
     public boolean isSuccess() {
         return isSuccess;
     }
@@ -43,21 +40,21 @@ public class Result<T, E extends Error> {
     }
 
     /* ---------- access ---------- */
-
     public T getValue() {
-        if (!isSuccess)
+        if (!isSuccess) {
             throw new IllegalStateException("Cannot get value from failure");
+        }
         return value;
     }
 
     public E getError() {
-        if (isSuccess)
+        if (isSuccess) {
             throw new IllegalStateException("Cannot get error from success");
+        }
         return error;
     }
 
     /* ---------- functional ---------- */
-
     public <U> Result<U, E> map(Function<? super T, ? extends U> mapper) {
         return isSuccess ? Result.success(mapper.apply(value)) : Result.failure(error);
     }
@@ -67,14 +64,16 @@ public class Result<T, E extends Error> {
     }
 
     public Result<T, E> onSuccess(Consumer<? super T> handler) {
-        if (isSuccess)
+        if (isSuccess) {
             handler.accept(value);
+        }
         return this;
     }
 
     public Result<T, E> onFailure(Consumer<? super E> handler) {
-        if (isFailure())
+        if (isFailure()) {
             handler.accept(error);
+        }
         return this;
     }
 
@@ -91,9 +90,9 @@ public class Result<T, E extends Error> {
      * Fail-fast для домена. Использовать ТОЛЬКО там, где ошибка невозможна по контракту.
      */
     public T getValueOrThrow() {
-        if (isSuccess)
+        if (isSuccess) {
             return value;
-
+        }
         throw new DomainInvariantException(error);
     }
 

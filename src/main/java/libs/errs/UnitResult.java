@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class UnitResult<E extends Error> {
-
     private final boolean isSuccess;
     private final E error;
 
@@ -15,7 +14,6 @@ public final class UnitResult<E extends Error> {
     }
 
     /* ---------- factory ---------- */
-
     public static <E extends Error> UnitResult<E> success() {
         return new UnitResult<>(true, null);
     }
@@ -26,7 +24,6 @@ public final class UnitResult<E extends Error> {
     }
 
     /* ---------- state ---------- */
-
     public boolean isSuccess() {
         return isSuccess;
     }
@@ -36,24 +33,25 @@ public final class UnitResult<E extends Error> {
     }
 
     /* ---------- access ---------- */
-
     public E getError() {
-        if (isSuccess)
+        if (isSuccess) {
             throw new IllegalStateException("Cannot get error from success");
+        }
         return error;
     }
 
     /* ---------- functional ---------- */
-
     public UnitResult<E> onSuccess(Runnable handler) {
-        if (isSuccess)
+        if (isSuccess) {
             handler.run();
+        }
         return this;
     }
 
     public UnitResult<E> onFailure(Consumer<? super E> handler) {
-        if (isFailure())
+        if (isFailure()) {
             handler.accept(error);
+        }
         return this;
     }
 
@@ -62,12 +60,13 @@ public final class UnitResult<E extends Error> {
     }
 
     /* ---------- composition ---------- */
-
     public UnitResult<E> merge(UnitResult<E> other) {
-        if (this.isFailure())
+        if (this.isFailure()) {
             return this;
-        if (other.isFailure())
+        }
+        if (other.isFailure()) {
             return other;
+        }
         return success();
     }
 
@@ -80,10 +79,10 @@ public final class UnitResult<E extends Error> {
     }
 
     /* ---------- fail-fast ---------- */
-
     public void getOrElseThrow(Function<? super E, ? extends RuntimeException> exceptionMapper) {
-        if (isSuccess)
+        if (isSuccess) {
             return;
+        }
         throw exceptionMapper.apply(error);
     }
 
@@ -91,8 +90,9 @@ public final class UnitResult<E extends Error> {
      * Fail-fast для домена. Использовать ТОЛЬКО там, где ошибка невозможна по контракту.
      */
     public void getOrElseThrow() {
-        if (isSuccess)
+        if (isSuccess) {
             return;
+        }
         throw new DomainInvariantException(error);
     }
 

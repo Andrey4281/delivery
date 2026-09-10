@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.UUID;
 
 public final class Guard {
-
     private static final UUID EMPTY_UUID = new UUID(0L, 0L);
 
     private Guard() {
@@ -42,48 +41,37 @@ public final class Guard {
     }
 
     public static <T extends Comparable<T>> Error againstGreaterThan(T value, T max, String paramName) {
-
         if (value == null || value.compareTo(max) > 0) {
             return GeneralErrors.valueMustBeLessThan(paramName, value, max);
         }
-
         return null;
     }
 
     public static <T extends Comparable<T>> Error againstGreaterOrEqual(T value, T max, String paramName) {
-
         if (value == null || value.compareTo(max) >= 0) {
             return GeneralErrors.valueMustBeLessOrEqual(paramName, value, max);
         }
-
         return null;
     }
 
     public static <T extends Comparable<T>> Error againstLessThan(T value, T min, String paramName) {
-
         if (value == null || value.compareTo(min) < 0) {
             return GeneralErrors.valueMustBeLessThan(paramName, value, min);
         }
-
         return null;
     }
 
     public static <T extends Comparable<T>> Error againstLessOrEqual(T value, T min, String paramName) {
-
         if (value == null || value.compareTo(min) <= 0) {
             return GeneralErrors.valueMustBeGreaterOrEqual(paramName, value, min);
         }
-
         return null;
     }
 
     public static <T extends Comparable<T>> Error againstOutOfRange(T value, T min, T max, String paramName) {
-
         if (value == null || value.compareTo(min) < 0 || value.compareTo(max) > 0) {
-
             return GeneralErrors.valueIsOutOfRange(paramName, value, min, max);
         }
-
         return null;
     }
 }
