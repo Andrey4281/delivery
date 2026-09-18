@@ -23,9 +23,7 @@ public class Assignment extends BaseEntity<UUID> {
     private final Volume volume;
     private AssignmentStatus status;
 
-    public static Result<Assignment, Error> create(UUID orderId,
-                                                   Location location,
-                                                   Volume volume) {
+    public static Result<Assignment, Error> create(UUID orderId, Location location, Volume volume) {
         Objects.requireNonNull(orderId, "orderId");
         Objects.requireNonNull(location, "location");
         Objects.requireNonNull(volume, "volume");
@@ -44,8 +42,7 @@ public class Assignment extends BaseEntity<UUID> {
 
     public static class Errors {
         public static Error courierMustHaveRightDistanceToOrder() {
-            return Error.of("courier.must.have.right.distance.to.order",
-                "The courier must be at a distance of 1 or located within the order grid cell.");
+            return Error.of("courier.must.have.right.distance.to.order", "The courier must be at a distance of 1 or located within the order grid cell.");
         }
     }
 }

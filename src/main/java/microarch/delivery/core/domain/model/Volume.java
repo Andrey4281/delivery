@@ -14,12 +14,12 @@ import java.util.List;
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Volume extends ValueObject<Volume> {
-    private static final int  MIN_VALUE = 1;
+    private static final int MIN_VALUE = 1;
 
     private final int value;
 
     public static Result<Volume, Error> create(int value) {
-        var err = Guard.againstLessThan(value, MIN_VALUE,"value");
+        var err = Guard.againstLessThan(value, MIN_VALUE, "value");
         if (err != null)
             return Result.failure(err);
 
