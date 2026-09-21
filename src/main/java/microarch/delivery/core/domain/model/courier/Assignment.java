@@ -5,7 +5,6 @@ import java.util.UUID;
 import libs.ddd.BaseEntity;
 import libs.errs.Error;
 import libs.errs.Result;
-import libs.errs.UnitResult;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,18 +35,16 @@ public final class Assignment extends BaseEntity<UUID> {
         return Result.success(new Assignment(orderId, location, volume, AssignmentStatus.ASSIGNED));
     }
 
-    public UnitResult<Error> completeAssignment(Location courierLocation) {
-        if (location.distance(courierLocation) <= 1) {
-            status = AssignmentStatus.COMPLETED;
-            return UnitResult.success();
-        } else {
-            return UnitResult.failure(Errors.courierMustHaveRightDistanceToOrder());
-        }
+    //сделал метод смены статуса со scope - внутри пакета с агрегатом courier, чтобы не могли изменить статус извне
+    void completeAssignment() {
+        this.status = AssignmentStatus.COMPLETED;
+    }
+
+    boolean isAssigned() {
+        return AssignmentStatus.ASSIGNED.equals(status);
     }
 
     public static class Errors {
-        public static Error courierMustHaveRightDistanceToOrder() {
-            return Error.of("courier.must.have.right.distance.to.order", "The courier must be at a distance of 1 or located within the order grid cell.");
-        }
+
     }
 }
