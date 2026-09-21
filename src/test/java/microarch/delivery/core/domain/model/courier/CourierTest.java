@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import microarch.delivery.core.domain.model.Location;
 import microarch.delivery.core.domain.model.Volume;
 import microarch.delivery.core.domain.model.order.Order;
+import microarch.delivery.core.domain.model.order.OrderStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -64,7 +65,7 @@ class CourierTest {
     class TakeOrder {
 
         @Test
-        @DisplayName("создаёт Assignment с ID заказа, пока сумма объёмов не превышает 20")
+        @DisplayName("создаёт Assignment с ID заказа и переводит заказ в ASSIGNED")
         void takesOrderWithinMaxVolume() {
             var courier = courier(location(5, 5));
             var order = order(location(6, 5), 15);
@@ -75,19 +76,37 @@ class CourierTest {
             assertThat(courier.getAssignments()).hasSize(1);
             assertThat(courier.getAssignments().get(0).getOrderId()).isEqualTo(order.getId());
             assertThat(courier.getAssignments().get(0).getStatus()).isEqualTo(AssignmentStatus.ASSIGNED);
+            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.ASSIGNED);
         }
 
         @Test
-        @DisplayName("отказывает, если сумма объёмов с новым заказом превышает 20")
+        @DisplayName("отказывает при повторном взятии того же заказа")
+        void rejectsTakingSameOrderTwice() {
+            var courier = courier(location(5, 5));
+            var order = order(location(6, 5), 5);
+            courier.takeOrder(order);
+
+            var result = courier.takeOrder(order);
+
+            assertThat(result.isFailure()).isTrue();
+            assertThat(result.getError()).isEqualTo(Courier.Errors.orderIsAlreadyAssigned());
+            assertThat(courier.getAssignments()).hasSize(1);
+            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.ASSIGNED);
+        }
+
+        @Test
+        @DisplayName("отказывает, если сумма объёмов с новым заказом превышает 20, заказ остаётся CREATED")
         void rejectsOrderExceedingMaxVolume() {
             var courier = courier(location(5, 5));
             courier.takeOrder(order(location(6, 5), 15));
+            var order = order(location(5, 6), 6);
 
-            var result = courier.takeOrder(order(location(5, 6), 6));
+            var result = courier.takeOrder(order);
 
             assertThat(result.isFailure()).isTrue();
             assertThat(result.getError()).isEqualTo(Courier.Errors.maximumOrderVolumeForTheCourierExceeded());
             assertThat(courier.getAssignments()).hasSize(1);
+            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
         }
 
         @Test
@@ -109,7 +128,7 @@ class CourierTest {
     class CompleteOrder {
 
         @Test
-        @DisplayName("завершает назначение на дистанции 1 или ближе")
+        @DisplayName("завершает назначение на дистанции 1 или ближе и переводит заказ в COMPLETED")
         void completesAssignmentWithinDistanceOne() {
             var courier = courier(location(5, 5));
             var order = order(location(6, 5), 5);
@@ -119,10 +138,11 @@ class CourierTest {
 
             assertThat(result.isSuccess()).isTrue();
             assertThat(courier.getAssignments().get(0).getStatus()).isEqualTo(AssignmentStatus.COMPLETED);
+            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.COMPLETED);
         }
 
         @Test
-        @DisplayName("отказывает, если курьер дальше 1 клетки от заказа")
+        @DisplayName("отказывает, если курьер дальше 1 клетки от заказа; заказ остаётся ASSIGNED")
         void rejectsWhenTooFarFromOrder() {
             var courier = courier(location(5, 5));
             var order = order(location(8, 5), 5);
@@ -133,6 +153,7 @@ class CourierTest {
             assertThat(result.isFailure()).isTrue();
             assertThat(result.getError()).isEqualTo(Courier.Errors.courierMustHaveRightDistanceToOrder());
             assertThat(courier.getAssignments().get(0).getStatus()).isEqualTo(AssignmentStatus.ASSIGNED);
+            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.ASSIGNED);
         }
 
         @Test

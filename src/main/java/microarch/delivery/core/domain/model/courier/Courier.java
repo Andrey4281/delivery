@@ -38,8 +38,12 @@ public final class Courier extends Aggregate<UUID> {
 
     public UnitResult<Error> takeOrder(Order order) {
         Objects.requireNonNull(order, "order");
+        if (assignments.stream().anyMatch(a -> a.getOrderId().equals(order.getId()))) {
+            return UnitResult.failure(Errors.orderIsAlreadyAssigned());
+        }
         if (canTakeOrder(order)) {
             assignments.add(Assignment.create(order.getId(), order.getLocation(), order.getVolume()).getValue());
+            order.assign();
             return UnitResult.success();
         } else {
             return UnitResult.failure(Errors.maximumOrderVolumeForTheCourierExceeded());
@@ -54,6 +58,7 @@ public final class Courier extends Aggregate<UUID> {
             }
             if (location.distance(assignment.getLocation()) <= 1) {
                 assignment.completeAssignment();
+                order.complete();
                 return UnitResult.success();
             } else {
                 return UnitResult.failure(Errors.courierMustHaveRightDistanceToOrder());
@@ -96,6 +101,10 @@ public final class Courier extends Aggregate<UUID> {
 
         public static Error assignmentIsAlreadyCompleted() {
             return Error.of("assignment.is.already.completed", "Assignment is already completed.");
+        }
+
+        public static Error orderIsAlreadyAssigned() {
+            return Error.of("order.is.already.assigned", "Order is already assigned to the courier.");
         }
     }
 }
