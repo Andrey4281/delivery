@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Volume extends ValueObject<Volume> {
+public final class Volume extends ValueObject<Volume> {
     private static final int MIN_VALUE = 1;
 
     private final int value;
