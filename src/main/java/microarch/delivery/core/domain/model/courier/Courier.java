@@ -18,7 +18,7 @@ import microarch.delivery.core.domain.model.order.Order;
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public final class Courier extends Aggregate<UUID> {
     private final String name;
-    private final Location location;
+    private Location location;
     private final Volume maxVolume = Volume.create(20).getValue();
     private final List<Assignment> assignments = new ArrayList<>();
 
@@ -38,6 +38,29 @@ public final class Courier extends Aggregate<UUID> {
         }
     }
 
+    public UnitResult<Error> completeOrder(Order order) {
+        return assignments.stream().filter(a -> a.getOrderId().equals(order.getId()))
+            .findFirst().map(assignment -> {
+                if (location.distance(assignment.getLocation()) <= 1) {
+                    assignment.completeAssignment();
+                    return UnitResult.success();
+                } else {
+                    return UnitResult.failure(Errors.courierMustHaveRightDistanceToOrder());
+                }
+            })
+            .orElseGet(() -> UnitResult.failure(Errors.orderDoesNotExist()));
+    }
+
+    public UnitResult<Error> move(Location requiredLocation) {
+        Objects.requireNonNull(requiredLocation, "requiredLocation");
+        if (location.distance(requiredLocation) <= 1) {
+            location = requiredLocation;
+            return UnitResult.success();
+        } else {
+            return UnitResult.failure(Errors.theCourierCanMoveOnlyToAnAdjacentCell());
+        }
+    }
+
     private boolean canTakeOrder(Order order) {
         Volume requiredVolume = assignments.stream()
             .filter(Assignment::isAssigned)
@@ -46,19 +69,6 @@ public final class Courier extends Aggregate<UUID> {
             .map(v -> v.add(order.getVolume()))
             .orElse(order.getVolume());
         return requiredVolume.isLessOrEqual(maxVolume);
-    }
-
-    public UnitResult<Error> completeOrder(Order order) {
-        return assignments.stream().filter(a -> a.getOrderId().equals(order.getId()))
-            .findFirst().map(assignment -> {
-                if (location.distance(order.getLocation()) <= 1) {
-                    assignment.completeAssignment();
-                    return UnitResult.success();
-                } else {
-                    return UnitResult.failure(Errors.courierMustHaveRightDistanceToOrder());
-                }
-            })
-            .orElseGet(() -> UnitResult.failure(Errors.orderDoesNotExist()));
     }
 
     public static class Errors {
@@ -72,6 +82,10 @@ public final class Courier extends Aggregate<UUID> {
 
         public static Error orderDoesNotExist() {
             return Error.of("order.does.not.exist", "Order does not exist");
+        }
+
+        public static Error theCourierCanMoveOnlyToAnAdjacentCell() {
+            return Error.of("the.courier.can.move.only.to.an.adjacent.cell", "The courier can move only to an adjacent cell.");
         }
     }
 }
