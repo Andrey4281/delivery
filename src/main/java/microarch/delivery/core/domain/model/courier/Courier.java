@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.UUID;
 import libs.ddd.Aggregate;
 import libs.errs.Error;
+import libs.errs.Result;
 import libs.errs.UnitResult;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -28,6 +29,13 @@ public final class Courier extends Aggregate<UUID> {
         this.location = location;
     }
 
+    public static Result<Courier, Error> create(String name, Location location) {
+        Objects.requireNonNull(name, "name");
+        Objects.requireNonNull(location, "location");
+
+        return Result.success(new Courier(name, location));
+    }
+
     public UnitResult<Error> takeOrder(Order order) {
         Objects.requireNonNull(order, "order");
         if (canTakeOrder(order)) {
@@ -39,16 +47,18 @@ public final class Courier extends Aggregate<UUID> {
     }
 
     public UnitResult<Error> completeOrder(Order order) {
-        return assignments.stream().filter(a -> a.getOrderId().equals(order.getId()))
-            .findFirst().map(assignment -> {
-                if (location.distance(assignment.getLocation()) <= 1) {
-                    assignment.completeAssignment();
-                    return UnitResult.success();
-                } else {
-                    return UnitResult.failure(Errors.courierMustHaveRightDistanceToOrder());
-                }
-            })
-            .orElseGet(() -> UnitResult.failure(Errors.orderDoesNotExist()));
+        Objects.requireNonNull(order, "order");
+        return assignments.stream().filter(a -> a.getOrderId().equals(order.getId())).findFirst().map(assignment -> {
+            if (assignment.isCompleted()) {
+                return UnitResult.failure(Errors.assignmentIsAlreadyCompleted());
+            }
+            if (location.distance(assignment.getLocation()) <= 1) {
+                assignment.completeAssignment();
+                return UnitResult.success();
+            } else {
+                return UnitResult.failure(Errors.courierMustHaveRightDistanceToOrder());
+            }
+        }).orElseGet(() -> UnitResult.failure(Errors.orderDoesNotExist()));
     }
 
     public UnitResult<Error> move(Location requiredLocation) {
@@ -62,12 +72,8 @@ public final class Courier extends Aggregate<UUID> {
     }
 
     private boolean canTakeOrder(Order order) {
-        Volume requiredVolume = assignments.stream()
-            .filter(Assignment::isAssigned)
-            .map(Assignment::getVolume)
-            .reduce(Volume::add)
-            .map(v -> v.add(order.getVolume()))
-            .orElse(order.getVolume());
+        Volume requiredVolume = assignments.stream().filter(Assignment::isAssigned).map(Assignment::getVolume).reduce(Volume::add).map(v -> v.add(order.getVolume()))
+                .orElse(order.getVolume());
         return requiredVolume.isLessOrEqual(maxVolume);
     }
 
@@ -86,6 +92,10 @@ public final class Courier extends Aggregate<UUID> {
 
         public static Error theCourierCanMoveOnlyToAnAdjacentCell() {
             return Error.of("the.courier.can.move.only.to.an.adjacent.cell", "The courier can move only to an adjacent cell.");
+        }
+
+        public static Error assignmentIsAlreadyCompleted() {
+            return Error.of("assignment.is.already.completed", "Assignment is already completed.");
         }
     }
 }

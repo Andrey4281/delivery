@@ -35,13 +35,17 @@ public final class Assignment extends BaseEntity<UUID> {
         return Result.success(new Assignment(orderId, location, volume, AssignmentStatus.ASSIGNED));
     }
 
-    //сделал метод смены статуса со scope - внутри пакета с агрегатом courier, чтобы не могли изменить статус извне
+    // сделал метод смены статуса со scope - внутри пакета с агрегатом courier, чтобы не могли изменить статус извне
     void completeAssignment() {
         this.status = AssignmentStatus.COMPLETED;
     }
 
     boolean isAssigned() {
         return AssignmentStatus.ASSIGNED.equals(status);
+    }
+
+    boolean isCompleted() {
+        return AssignmentStatus.COMPLETED.equals(status);
     }
 
     public static class Errors {
