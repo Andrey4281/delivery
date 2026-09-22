@@ -43,7 +43,6 @@ public final class Courier extends Aggregate<UUID> {
         }
         if (canTakeOrder(order)) {
             assignments.add(Assignment.create(order.getId(), order.getLocation(), order.getVolume()).getValue());
-            order.assign();
             return UnitResult.success();
         } else {
             return UnitResult.failure(Errors.maximumOrderVolumeForTheCourierExceeded());
@@ -58,7 +57,6 @@ public final class Courier extends Aggregate<UUID> {
             }
             if (location.distance(assignment.getLocation()) <= 1) {
                 assignment.completeAssignment();
-                order.complete();
                 return UnitResult.success();
             } else {
                 return UnitResult.failure(Errors.courierMustHaveRightDistanceToOrder());

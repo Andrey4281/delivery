@@ -65,7 +65,7 @@ class CourierTest {
     class TakeOrder {
 
         @Test
-        @DisplayName("создаёт Assignment с ID заказа и переводит заказ в ASSIGNED")
+        @DisplayName("создаёт Assignment с ID заказа; статус заказа не меняется")
         void takesOrderWithinMaxVolume() {
             var courier = courier(location(5, 5));
             var order = order(location(6, 5), 15);
@@ -76,7 +76,7 @@ class CourierTest {
             assertThat(courier.getAssignments()).hasSize(1);
             assertThat(courier.getAssignments().get(0).getOrderId()).isEqualTo(order.getId());
             assertThat(courier.getAssignments().get(0).getStatus()).isEqualTo(AssignmentStatus.ASSIGNED);
-            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.ASSIGNED);
+            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
         }
 
         @Test
@@ -91,7 +91,7 @@ class CourierTest {
             assertThat(result.isFailure()).isTrue();
             assertThat(result.getError()).isEqualTo(Courier.Errors.orderIsAlreadyAssigned());
             assertThat(courier.getAssignments()).hasSize(1);
-            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.ASSIGNED);
+            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
         }
 
         @Test
@@ -128,7 +128,7 @@ class CourierTest {
     class CompleteOrder {
 
         @Test
-        @DisplayName("завершает назначение на дистанции 1 или ближе и переводит заказ в COMPLETED")
+        @DisplayName("завершает назначение на дистанции 1 или ближе; статус заказа не меняется")
         void completesAssignmentWithinDistanceOne() {
             var courier = courier(location(5, 5));
             var order = order(location(6, 5), 5);
@@ -138,11 +138,11 @@ class CourierTest {
 
             assertThat(result.isSuccess()).isTrue();
             assertThat(courier.getAssignments().get(0).getStatus()).isEqualTo(AssignmentStatus.COMPLETED);
-            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.COMPLETED);
+            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
         }
 
         @Test
-        @DisplayName("отказывает, если курьер дальше 1 клетки от заказа; заказ остаётся ASSIGNED")
+        @DisplayName("отказывает, если курьер дальше 1 клетки от заказа; назначение остаётся ASSIGNED")
         void rejectsWhenTooFarFromOrder() {
             var courier = courier(location(5, 5));
             var order = order(location(8, 5), 5);
@@ -153,7 +153,7 @@ class CourierTest {
             assertThat(result.isFailure()).isTrue();
             assertThat(result.getError()).isEqualTo(Courier.Errors.courierMustHaveRightDistanceToOrder());
             assertThat(courier.getAssignments().get(0).getStatus()).isEqualTo(AssignmentStatus.ASSIGNED);
-            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.ASSIGNED);
+            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
         }
 
         @Test
