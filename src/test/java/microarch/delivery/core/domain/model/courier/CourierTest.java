@@ -8,8 +8,6 @@ import org.junit.jupiter.api.Test;
 
 import microarch.delivery.core.domain.model.Location;
 import microarch.delivery.core.domain.model.Volume;
-import microarch.delivery.core.domain.model.order.Order;
-import microarch.delivery.core.domain.model.order.OrderStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -23,10 +21,6 @@ class CourierTest {
 
     private static Volume volume(int value) {
         return Volume.create(value).getValue();
-    }
-
-    private static Order order(Location location, int volume) {
-        return Order.create(UUID.randomUUID(), location, volume(volume)).getValue();
     }
 
     private static Courier courier(Location location) {
@@ -65,59 +59,68 @@ class CourierTest {
     class TakeOrder {
 
         @Test
-        @DisplayName("создаёт Assignment с ID заказа; статус заказа не меняется")
+        @DisplayName("создаёт Assignment с ID заказа и переданными координатами и объёмом")
         void takesOrderWithinMaxVolume() {
             var courier = courier(location(5, 5));
-            var order = order(location(6, 5), 15);
+            var orderId = UUID.randomUUID();
 
-            var result = courier.takeOrder(order);
+            var result = courier.takeOrder(orderId, location(6, 5), volume(15));
 
             assertThat(result.isSuccess()).isTrue();
             assertThat(courier.getAssignments()).hasSize(1);
-            assertThat(courier.getAssignments().get(0).getOrderId()).isEqualTo(order.getId());
+            assertThat(courier.getAssignments().get(0).getOrderId()).isEqualTo(orderId);
+            assertThat(courier.getAssignments().get(0).getLocation()).isEqualTo(location(6, 5));
+            assertThat(courier.getAssignments().get(0).getVolume()).isEqualTo(volume(15));
             assertThat(courier.getAssignments().get(0).getStatus()).isEqualTo(AssignmentStatus.ASSIGNED);
-            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
+        }
+
+        @Test
+        @DisplayName("бросает NPE при null-аргументах (fail-fast)")
+        void throwsOnNullArguments() {
+            var courier = courier(location(5, 5));
+            var orderId = UUID.randomUUID();
+
+            assertThatThrownBy(() -> courier.takeOrder(null, location(6, 5), volume(15))).isInstanceOf(NullPointerException.class).hasMessageContaining("orderId");
+            assertThatThrownBy(() -> courier.takeOrder(orderId, null, volume(15))).isInstanceOf(NullPointerException.class).hasMessageContaining("orderLocation");
+            assertThatThrownBy(() -> courier.takeOrder(orderId, location(6, 5), null)).isInstanceOf(NullPointerException.class).hasMessageContaining("orderVolume");
         }
 
         @Test
         @DisplayName("отказывает при повторном взятии того же заказа")
         void rejectsTakingSameOrderTwice() {
             var courier = courier(location(5, 5));
-            var order = order(location(6, 5), 5);
-            courier.takeOrder(order);
+            var orderId = UUID.randomUUID();
+            courier.takeOrder(orderId, location(6, 5), volume(5));
 
-            var result = courier.takeOrder(order);
+            var result = courier.takeOrder(orderId, location(5, 6), volume(5));
 
             assertThat(result.isFailure()).isTrue();
             assertThat(result.getError()).isEqualTo(Courier.Errors.orderIsAlreadyAssigned());
             assertThat(courier.getAssignments()).hasSize(1);
-            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
         }
 
         @Test
-        @DisplayName("отказывает, если сумма объёмов с новым заказом превышает 20, заказ остаётся CREATED")
+        @DisplayName("отказывает, если сумма объёмов назначений с новым заказом превышает 20")
         void rejectsOrderExceedingMaxVolume() {
             var courier = courier(location(5, 5));
-            courier.takeOrder(order(location(6, 5), 15));
-            var order = order(location(5, 6), 6);
+            courier.takeOrder(UUID.randomUUID(), location(6, 5), volume(15));
 
-            var result = courier.takeOrder(order);
+            var result = courier.takeOrder(UUID.randomUUID(), location(5, 6), volume(6));
 
             assertThat(result.isFailure()).isTrue();
             assertThat(result.getError()).isEqualTo(Courier.Errors.maximumOrderVolumeForTheCourierExceeded());
             assertThat(courier.getAssignments()).hasSize(1);
-            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
         }
 
         @Test
         @DisplayName("не учитывает объём завершённых назначений")
         void ignoresVolumeOfCompletedAssignments() {
             var courier = courier(location(5, 5));
-            var first = order(location(5, 5), 20);
-            courier.takeOrder(first);
+            var first = UUID.randomUUID();
+            courier.takeOrder(first, location(5, 5), volume(20));
             courier.completeOrder(first);
 
-            var result = courier.takeOrder(order(location(5, 5), 20));
+            var result = courier.takeOrder(UUID.randomUUID(), location(5, 5), volume(20));
 
             assertThat(result.isSuccess()).isTrue();
         }
@@ -128,32 +131,30 @@ class CourierTest {
     class CompleteOrder {
 
         @Test
-        @DisplayName("завершает назначение на дистанции 1 или ближе; статус заказа не меняется")
+        @DisplayName("завершает назначение на дистанции 1 или ближе")
         void completesAssignmentWithinDistanceOne() {
             var courier = courier(location(5, 5));
-            var order = order(location(6, 5), 5);
-            courier.takeOrder(order);
+            var orderId = UUID.randomUUID();
+            courier.takeOrder(orderId, location(6, 5), volume(5));
 
-            var result = courier.completeOrder(order);
+            var result = courier.completeOrder(orderId);
 
             assertThat(result.isSuccess()).isTrue();
             assertThat(courier.getAssignments().get(0).getStatus()).isEqualTo(AssignmentStatus.COMPLETED);
-            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
         }
 
         @Test
         @DisplayName("отказывает, если курьер дальше 1 клетки от заказа; назначение остаётся ASSIGNED")
         void rejectsWhenTooFarFromOrder() {
             var courier = courier(location(5, 5));
-            var order = order(location(8, 5), 5);
-            courier.takeOrder(order);
+            var orderId = UUID.randomUUID();
+            courier.takeOrder(orderId, location(8, 5), volume(5));
 
-            var result = courier.completeOrder(order);
+            var result = courier.completeOrder(orderId);
 
             assertThat(result.isFailure()).isTrue();
             assertThat(result.getError()).isEqualTo(Courier.Errors.courierMustHaveRightDistanceToOrder());
             assertThat(courier.getAssignments().get(0).getStatus()).isEqualTo(AssignmentStatus.ASSIGNED);
-            assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CREATED);
         }
 
         @Test
@@ -161,7 +162,7 @@ class CourierTest {
         void rejectsWhenOrderIsNotAssigned() {
             var courier = courier(location(5, 5));
 
-            var result = courier.completeOrder(order(location(5, 5), 5));
+            var result = courier.completeOrder(UUID.randomUUID());
 
             assertThat(result.isFailure()).isTrue();
             assertThat(result.getError()).isEqualTo(Courier.Errors.orderDoesNotExist());
@@ -171,11 +172,11 @@ class CourierTest {
         @DisplayName("отказывает при повторном завершении того же заказа")
         void rejectsWhenAssignmentAlreadyCompleted() {
             var courier = courier(location(5, 5));
-            var order = order(location(5, 5), 5);
-            courier.takeOrder(order);
-            courier.completeOrder(order);
+            var orderId = UUID.randomUUID();
+            courier.takeOrder(orderId, location(5, 5), volume(5));
+            courier.completeOrder(orderId);
 
-            var result = courier.completeOrder(order);
+            var result = courier.completeOrder(orderId);
 
             assertThat(result.isFailure()).isTrue();
             assertThat(result.getError()).isEqualTo(Courier.Errors.assignmentIsAlreadyCompleted());

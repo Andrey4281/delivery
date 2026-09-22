@@ -13,14 +13,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import microarch.delivery.core.domain.model.Location;
 import microarch.delivery.core.domain.model.Volume;
-import microarch.delivery.core.domain.model.order.Order;
 
-@Getter
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public final class Courier extends Aggregate<UUID> {
+    @Getter
     private final String name;
+    @Getter
     private Location location;
+    @Getter
     private final Volume maxVolume = Volume.create(20).getValue();
+
+    public List<Assignment> getAssignments() {
+        return List.copyOf(assignments);
+    }
+
     private final List<Assignment> assignments = new ArrayList<>();
 
     private Courier(String name, Location location) {
@@ -36,22 +42,24 @@ public final class Courier extends Aggregate<UUID> {
         return Result.success(new Courier(name, location));
     }
 
-    public UnitResult<Error> takeOrder(Order order) {
-        Objects.requireNonNull(order, "order");
-        if (assignments.stream().anyMatch(a -> a.getOrderId().equals(order.getId()))) {
+    public UnitResult<Error> takeOrder(UUID orderId, Location orderLocation, Volume orderVolume) {
+        Objects.requireNonNull(orderId, "orderId");
+        Objects.requireNonNull(orderLocation, "orderLocation");
+        Objects.requireNonNull(orderVolume, "orderVolume");
+        if (assignments.stream().anyMatch(a -> a.getOrderId().equals(orderId))) {
             return UnitResult.failure(Errors.orderIsAlreadyAssigned());
         }
-        if (canTakeOrder(order)) {
-            assignments.add(Assignment.create(order.getId(), order.getLocation(), order.getVolume()).getValue());
+        if (canTakeOrder(orderVolume)) {
+            assignments.add(Assignment.create(orderId, orderLocation, orderVolume).getValue());
             return UnitResult.success();
         } else {
             return UnitResult.failure(Errors.maximumOrderVolumeForTheCourierExceeded());
         }
     }
 
-    public UnitResult<Error> completeOrder(Order order) {
-        Objects.requireNonNull(order, "order");
-        return assignments.stream().filter(a -> a.getOrderId().equals(order.getId())).findFirst().map(assignment -> {
+    public UnitResult<Error> completeOrder(UUID orderId) {
+        Objects.requireNonNull(orderId, "orderId");
+        return assignments.stream().filter(a -> a.getOrderId().equals(orderId)).findFirst().map(assignment -> {
             if (assignment.isCompleted()) {
                 return UnitResult.failure(Errors.assignmentIsAlreadyCompleted());
             }
@@ -74,9 +82,8 @@ public final class Courier extends Aggregate<UUID> {
         }
     }
 
-    private boolean canTakeOrder(Order order) {
-        Volume requiredVolume = assignments.stream().filter(Assignment::isAssigned).map(Assignment::getVolume).reduce(Volume::add).map(v -> v.add(order.getVolume()))
-                .orElse(order.getVolume());
+    private boolean canTakeOrder(Volume orderVolume) {
+        Volume requiredVolume = assignments.stream().filter(Assignment::isAssigned).map(Assignment::getVolume).reduce(Volume::add).map(v -> v.add(orderVolume)).orElse(orderVolume);
         return requiredVolume.isLessOrEqual(maxVolume);
     }
 
