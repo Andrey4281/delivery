@@ -25,25 +25,19 @@ public class OrderServiceImpl implements OrderService {
             return Result.failure(Errors.allCouriersAreFullyBookedOrUnavailable());
         }
         Location orderLocation = order.getLocation();
-        Optional<Courier> optionalCourier = availableCouriers.stream().min((c1, c2) ->
+        Courier foundCourier = availableCouriers.stream().min((c1, c2) ->
             Math.min(c1.getLocation().distance(orderLocation),
-                c2.getLocation().distance(orderLocation)));
+                c2.getLocation().distance(orderLocation))).get();
 
-        if (optionalCourier.isEmpty()) {
-            Courier foundCourier = optionalCourier.get();
-            UnitResult<Error> takingOrderResult = foundCourier.takeOrder(order.getId(), orderLocation, order.getVolume());
-            if (takingOrderResult.isFailure()) {
-                return Result.failure(takingOrderResult.getError());
-            }
-            UnitResult<Error> orderAssignResult = order.assign();
-            if (orderAssignResult.isFailure()) {
-                return Result.failure(orderAssignResult.getError());
-            }
-            return Result.success(foundCourier);
-        } else {
-
+        UnitResult<Error> takingOrderResult = foundCourier.takeOrder(order.getId(), orderLocation, order.getVolume());
+        if (takingOrderResult.isFailure()) {
+            return Result.failure(takingOrderResult.getError());
         }
-        return null;
+        UnitResult<Error> orderAssignResult = order.assign();
+        if (orderAssignResult.isFailure()) {
+            return Result.failure(orderAssignResult.getError());
+        }
+        return Result.success(foundCourier);
     }
 
     public static class Errors {
