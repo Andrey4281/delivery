@@ -50,6 +50,10 @@ public final class Order extends Aggregate<UUID> {
         return UnitResult.success();
     }
 
+    public boolean isCreated() {
+        return OrderStatus.CREATED.equals(orderStatus);
+    }
+
     public static class Errors {
         public static Error mustBeCreatedToAssign() {
             return Error.of("order.must.be.created.to.assign", "The order must have the Created status to be assigned.");
