@@ -82,7 +82,7 @@ public final class Courier extends Aggregate<UUID> {
         }
     }
 
-    private boolean canTakeOrder(Volume orderVolume) {
+    public boolean canTakeOrder(Volume orderVolume) {
         Volume requiredVolume = assignments.stream().filter(Assignment::isAssigned).map(Assignment::getVolume).reduce(Volume::add).map(v -> v.add(orderVolume)).orElse(orderVolume);
         return requiredVolume.isLessOrEqual(maxVolume);
     }
