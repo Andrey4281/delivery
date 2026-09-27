@@ -2,6 +2,11 @@ package microarch.delivery.core.domain.model.order;
 
 import java.util.Objects;
 import java.util.UUID;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import libs.ddd.Aggregate;
 import libs.errs.Error;
 import libs.errs.Result;
@@ -9,14 +14,21 @@ import libs.errs.UnitResult;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import microarch.delivery.adapters.out.postgres.OrderStatusConverter;
 import microarch.delivery.core.domain.model.Location;
 import microarch.delivery.core.domain.model.Volume;
 
+@Entity
+@Table(name = "orders")
 @Getter
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public final class Order extends Aggregate<UUID> {
+    @Embedded
     private final Location location;
+    @Embedded
     private final Volume volume;
+    @Column(name = "order_status")
+    @Convert(converter = OrderStatusConverter.class)
     private OrderStatus orderStatus;
 
     private Order(UUID id, Location location, Volume volume, OrderStatus orderStatus) {

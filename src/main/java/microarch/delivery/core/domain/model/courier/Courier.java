@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import libs.ddd.Aggregate;
 import libs.errs.Error;
 import libs.errs.Result;
@@ -17,10 +19,13 @@ import microarch.delivery.core.domain.model.Volume;
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public final class Courier extends Aggregate<UUID> {
     @Getter
+    @Column(name = "name")
     private final String name;
     @Getter
+    @Embedded
     private Location location;
     @Getter
+    @Embedded
     private final Volume maxVolume = Volume.create(20).getValue();
 
     public List<Assignment> getAssignments() {
