@@ -1,12 +1,12 @@
 package microarch.delivery.core.domain.model.order;
 
-import java.util.Objects;
-import java.util.UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import java.util.Objects;
+import java.util.UUID;
 import libs.ddd.Aggregate;
 import libs.errs.Error;
 import libs.errs.Result;
