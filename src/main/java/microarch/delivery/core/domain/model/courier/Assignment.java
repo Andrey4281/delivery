@@ -1,5 +1,11 @@
 package microarch.delivery.core.domain.model.courier;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import java.util.Objects;
 import java.util.UUID;
 import libs.ddd.BaseEntity;
@@ -11,12 +17,19 @@ import lombok.NoArgsConstructor;
 import microarch.delivery.core.domain.model.Location;
 import microarch.delivery.core.domain.model.Volume;
 
+@Entity
+@Table(name = "assignments")
 @Getter
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public final class Assignment extends BaseEntity<UUID> {
+    @Column(name = "order_id")
     private final UUID orderId;
+    @Embedded
     private final Location location;
+    @Embedded
     private final Volume volume;
+    @Column(name = "assignment_status")
+    @Enumerated(EnumType.STRING)
     private AssignmentStatus status;
 
     private Assignment(UUID orderId, Location location, Volume volume, AssignmentStatus status) {

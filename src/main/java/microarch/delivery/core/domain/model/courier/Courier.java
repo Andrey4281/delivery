@@ -4,6 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import libs.ddd.Aggregate;
 import libs.errs.Error;
 import libs.errs.Result;
@@ -14,19 +21,26 @@ import lombok.NoArgsConstructor;
 import microarch.delivery.core.domain.model.Location;
 import microarch.delivery.core.domain.model.Volume;
 
+@Entity
+@Table(name = "couriers")
 @NoArgsConstructor(force = true, access = AccessLevel.PROTECTED)
 public final class Courier extends Aggregate<UUID> {
     @Getter
+    @Column(name = "name")
     private final String name;
     @Getter
+    @Embedded
     private Location location;
     @Getter
+    @Embedded
     private final Volume maxVolume = Volume.create(20).getValue();
 
     public List<Assignment> getAssignments() {
         return List.copyOf(assignments);
     }
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "courier_id")
     private final List<Assignment> assignments = new ArrayList<>();
 
     private Courier(String name, Location location) {
