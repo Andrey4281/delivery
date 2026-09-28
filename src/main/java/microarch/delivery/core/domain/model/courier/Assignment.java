@@ -1,9 +1,10 @@
 package microarch.delivery.core.domain.model.courier;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.util.Objects;
 import java.util.UUID;
@@ -13,7 +14,6 @@ import libs.errs.Result;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import microarch.delivery.adapters.out.postgres.AssignmentStatusConverter;
 import microarch.delivery.core.domain.model.Location;
 import microarch.delivery.core.domain.model.Volume;
 
@@ -29,7 +29,7 @@ public final class Assignment extends BaseEntity<UUID> {
     @Embedded
     private final Volume volume;
     @Column(name = "assignment_status")
-    @Convert(converter = AssignmentStatusConverter.class)
+    @Enumerated(EnumType.STRING)
     private AssignmentStatus status;
 
     private Assignment(UUID orderId, Location location, Volume volume, AssignmentStatus status) {
