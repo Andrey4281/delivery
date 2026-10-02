@@ -42,15 +42,7 @@ class CreateOrderCommandHandlerImplTest {
         @DisplayName("создаёт заказ и сохраняет в репозиторий")
         void createsOrderAndSavesToRepository() {
             var orderID = UUID.randomUUID();
-            var command = CreateOrderCommand.create(
-                orderID,
-                "Russia",
-                "Moscow",
-                "Lenina",
-                "10",
-                "5",
-                3
-            ).getValue();
+            var command = CreateOrderCommand.create(orderID, "Russia", "Moscow", "Lenina", "10", "5", 3).getValue();
 
             var result = handler.handle(command);
 
@@ -65,15 +57,7 @@ class CreateOrderCommandHandlerImplTest {
         @Test
         @DisplayName("создаёт заказ со случайной Location в допустимом диапазоне")
         void createsOrderWithRandomLocationInRange() {
-            var command = CreateOrderCommand.create(
-                UUID.randomUUID(),
-                "Russia",
-                "Moscow",
-                "Lenina",
-                "10",
-                "5",
-                3
-            ).getValue();
+            var command = CreateOrderCommand.create(UUID.randomUUID(), "Russia", "Moscow", "Lenina", "10", "5", 3).getValue();
 
             var result = handler.handle(command);
 
@@ -88,15 +72,7 @@ class CreateOrderCommandHandlerImplTest {
         @Test
         @DisplayName("возвращает ошибку при неудачном создании заказа")
         void returnsErrorWhenOrderCreationFails() {
-            var command = CreateOrderCommand.create(
-                null,
-                "Russia",
-                "Moscow",
-                "Lenina",
-                "10",
-                "5",
-                3
-            );
+            var command = CreateOrderCommand.create(null, "Russia", "Moscow", "Lenina", "10", "5", 3);
 
             assertThat(command.isFailure()).isTrue();
         }
@@ -105,15 +81,7 @@ class CreateOrderCommandHandlerImplTest {
         @DisplayName("корректно обрабатывает валидный Address")
         void handlesValidAddress() {
             var orderID = UUID.randomUUID();
-            var command = CreateOrderCommand.create(
-                orderID,
-                "Russia",
-                "Moscow",
-                "Lenina",
-                "10",
-                "5",
-                3
-            ).getValue();
+            var command = CreateOrderCommand.create(orderID, "Russia", "Moscow", "Lenina", "10", "5", 3).getValue();
 
             var result = handler.handle(command);
 
@@ -124,25 +92,9 @@ class CreateOrderCommandHandlerImplTest {
         @Test
         @DisplayName("создаёт несколько заказов с разными случайными Location")
         void createsMultipleOrdersWithDifferentRandomLocations() {
-            var command1 = CreateOrderCommand.create(
-                UUID.randomUUID(),
-                "Russia",
-                "Moscow",
-                "Lenina",
-                "10",
-                "5",
-                3
-            ).getValue();
+            var command1 = CreateOrderCommand.create(UUID.randomUUID(), "Russia", "Moscow", "Lenina", "10", "5", 3).getValue();
 
-            var command2 = CreateOrderCommand.create(
-                UUID.randomUUID(),
-                "Russia",
-                "Moscow",
-                "Lenina",
-                "10",
-                "5",
-                3
-            ).getValue();
+            var command2 = CreateOrderCommand.create(UUID.randomUUID(), "Russia", "Moscow", "Lenina", "10", "5", 3).getValue();
 
             var result1 = handler.handle(command1);
             var result2 = handler.handle(command2);
@@ -164,15 +116,7 @@ class CreateOrderCommandHandlerImplTest {
         @DisplayName("создаёт команду с валидными данными")
         void createsCommandWithValidData() {
             var orderID = UUID.randomUUID();
-            var result = CreateOrderCommand.create(
-                orderID,
-                "Russia",
-                "Moscow",
-                "Lenina",
-                "10",
-                "5",
-                3
-            );
+            var result = CreateOrderCommand.create(orderID, "Russia", "Moscow", "Lenina", "10", "5", 3);
 
             assertThat(result.isSuccess()).isTrue();
             var command = result.getValue();
@@ -183,15 +127,7 @@ class CreateOrderCommandHandlerImplTest {
         @Test
         @DisplayName("отклоняет пустой orderID")
         void rejectsNullOrderID() {
-            var result = CreateOrderCommand.create(
-                null,
-                "Russia",
-                "Moscow",
-                "Lenina",
-                "10",
-                "5",
-                3
-            );
+            var result = CreateOrderCommand.create(null, "Russia", "Moscow", "Lenina", "10", "5", 3);
 
             assertThat(result.isFailure()).isTrue();
             assertThat(result.getError().getCode()).isEqualTo("value.is.required");
@@ -200,15 +136,7 @@ class CreateOrderCommandHandlerImplTest {
         @Test
         @DisplayName("отклоняет пустой country")
         void rejectsEmptyCountry() {
-            var result = CreateOrderCommand.create(
-                UUID.randomUUID(),
-                "",
-                "Moscow",
-                "Lenina",
-                "10",
-                "5",
-                3
-            );
+            var result = CreateOrderCommand.create(UUID.randomUUID(), "", "Moscow", "Lenina", "10", "5", 3);
 
             assertThat(result.isFailure()).isTrue();
             assertThat(result.getError().getCode()).isEqualTo("value.is.required");
@@ -217,15 +145,7 @@ class CreateOrderCommandHandlerImplTest {
         @Test
         @DisplayName("отклоняет пустой city")
         void rejectsEmptyCity() {
-            var result = CreateOrderCommand.create(
-                UUID.randomUUID(),
-                "Russia",
-                "",
-                "Lenina",
-                "10",
-                "5",
-                3
-            );
+            var result = CreateOrderCommand.create(UUID.randomUUID(), "Russia", "", "Lenina", "10", "5", 3);
 
             assertThat(result.isFailure()).isTrue();
         }
@@ -233,15 +153,7 @@ class CreateOrderCommandHandlerImplTest {
         @Test
         @DisplayName("отклоняет пустой street")
         void rejectsEmptyStreet() {
-            var result = CreateOrderCommand.create(
-                UUID.randomUUID(),
-                "Russia",
-                "Moscow",
-                "",
-                "10",
-                "5",
-                3
-            );
+            var result = CreateOrderCommand.create(UUID.randomUUID(), "Russia", "Moscow", "", "10", "5", 3);
 
             assertThat(result.isFailure()).isTrue();
         }
@@ -249,15 +161,7 @@ class CreateOrderCommandHandlerImplTest {
         @Test
         @DisplayName("отклоняет пустой house")
         void rejectsEmptyHouse() {
-            var result = CreateOrderCommand.create(
-                UUID.randomUUID(),
-                "Russia",
-                "Moscow",
-                "Lenina",
-                "",
-                "5",
-                3
-            );
+            var result = CreateOrderCommand.create(UUID.randomUUID(), "Russia", "Moscow", "Lenina", "", "5", 3);
 
             assertThat(result.isFailure()).isTrue();
         }
@@ -265,15 +169,7 @@ class CreateOrderCommandHandlerImplTest {
         @Test
         @DisplayName("отклоняет пустой apartment")
         void rejectsEmptyApartment() {
-            var result = CreateOrderCommand.create(
-                UUID.randomUUID(),
-                "Russia",
-                "Moscow",
-                "Lenina",
-                "10",
-                "",
-                3
-            );
+            var result = CreateOrderCommand.create(UUID.randomUUID(), "Russia", "Moscow", "Lenina", "10", "", 3);
 
             assertThat(result.isFailure()).isTrue();
         }
@@ -281,15 +177,7 @@ class CreateOrderCommandHandlerImplTest {
         @Test
         @DisplayName("отклоняет невалидный volume")
         void rejectsInvalidVolume() {
-            var result = CreateOrderCommand.create(
-                UUID.randomUUID(),
-                "Russia",
-                "Moscow",
-                "Lenina",
-                "10",
-                "5",
-                0
-            );
+            var result = CreateOrderCommand.create(UUID.randomUUID(), "Russia", "Moscow", "Lenina", "10", "5", 0);
 
             assertThat(result.isFailure()).isTrue();
             assertThat(result.getError().getCode()).isEqualTo("value.must.be.greater.than");

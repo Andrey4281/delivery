@@ -17,15 +17,7 @@ public class CreateOrderCommand {
     private final Address address;
     private final Volume volume;
 
-    public static Result<CreateOrderCommand, Error> create(
-        UUID orderID,
-        String country,
-        String city,
-        String street,
-        String house,
-        String apartment,
-        int volume
-    ) {
+    public static Result<CreateOrderCommand, Error> create(UUID orderID, String country, String city, String street, String house, String apartment, int volume) {
         var err = Guard.againstNullOrEmpty(orderID, "orderID");
         if (err != null) {
             return Result.failure(err);

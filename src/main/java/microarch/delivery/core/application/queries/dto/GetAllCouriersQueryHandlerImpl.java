@@ -16,12 +16,7 @@ public class GetAllCouriersQueryHandlerImpl implements GetAllCouriersQueryHandle
 
     @Override
     public List<CourierDto> handle() {
-        return courierRepository.getAll().stream()
-                .map(courier -> new CourierDto(
-                        courier.getId(),
-                        courier.getName(),
-                        courier.getLocation().getX(),
-                        courier.getLocation().getY()))
+        return courierRepository.getAll().stream().map(courier -> new CourierDto(courier.getId(), courier.getName(), courier.getLocation().getX(), courier.getLocation().getY()))
                 .toList();
     }
 }
