@@ -6,6 +6,7 @@ import libs.errs.UnitResult;
 import microarch.delivery.core.ports.CourierRepository;
 import microarch.delivery.core.ports.OrderRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CompleteOrderCommandHandlerImpl implements CompleteOrderCommandHandler {
@@ -18,6 +19,7 @@ public class CompleteOrderCommandHandlerImpl implements CompleteOrderCommandHand
     }
 
     @Override
+    @Transactional
     public UnitResult<Error> handle(CompleteOrderCommand command) {
         var courier = courierRepository.getById(command.getCourierId());
         if (courier.isEmpty()) {

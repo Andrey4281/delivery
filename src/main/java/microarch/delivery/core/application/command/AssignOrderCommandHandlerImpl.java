@@ -6,6 +6,7 @@ import microarch.delivery.core.domain.services.OrderService;
 import microarch.delivery.core.ports.CourierRepository;
 import microarch.delivery.core.ports.OrderRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AssignOrderCommandHandlerImpl implements AssignOrderCommandHandler {
@@ -21,6 +22,7 @@ public class AssignOrderCommandHandlerImpl implements AssignOrderCommandHandler 
     }
 
     @Override
+    @Transactional
     public UnitResult<Error> handle(AssignOrderCommand command) {
         var order = orderRepository.getFirstInCreatedStatus();
         if (order.isEmpty()) {
