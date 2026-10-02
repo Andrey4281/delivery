@@ -1,8 +1,10 @@
 package microarch.delivery.core.application.command;
 
 import libs.errs.Error;
-import libs.errs.UnitResult;
+import libs.errs.Result;
+
+import java.util.UUID;
 
 public interface CreateCourierCommandHandler {
-    UnitResult<Error> handle(CreateCourierCommand command);
+    Result<UUID, Error> handle(CreateCourierCommand command);
 }

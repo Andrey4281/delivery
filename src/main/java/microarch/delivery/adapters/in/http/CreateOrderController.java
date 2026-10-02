@@ -3,13 +3,14 @@ package microarch.delivery.adapters.in.http;
 import lombok.RequiredArgsConstructor;
 import microarch.delivery.adapters.in.http.api.CreateOrderApi;
 import microarch.delivery.adapters.in.http.model.CreateOrderResponse;
-import microarch.delivery.adapters.in.http.model.Error;
 import microarch.delivery.adapters.in.http.model.NewOrder;
 import microarch.delivery.core.application.command.CreateOrderCommand;
 import microarch.delivery.core.application.command.CreateOrderCommandHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+
+import static microarch.delivery.adapters.in.http.ErrorResponses.badRequest;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,11 +33,5 @@ public class CreateOrderController implements CreateOrderApi {
 
         var response = new CreateOrderResponse(newOrder.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> ResponseEntity<T> badRequest(libs.errs.Error error) {
-        var body = new Error(HttpStatus.BAD_REQUEST.value(), error.getMessage());
-        return (ResponseEntity<T>) ResponseEntity.badRequest().body(body);
     }
 }
