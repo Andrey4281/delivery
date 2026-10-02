@@ -14,8 +14,7 @@ public class AssignOrderCommandHandlerImpl implements AssignOrderCommandHandler 
     private final CourierRepository courierRepository;
     private final OrderService orderService;
 
-    public AssignOrderCommandHandlerImpl(OrderRepository orderRepository, CourierRepository courierRepository,
-            OrderService orderService) {
+    public AssignOrderCommandHandlerImpl(OrderRepository orderRepository, CourierRepository courierRepository, OrderService orderService) {
         this.orderRepository = orderRepository;
         this.courierRepository = courierRepository;
         this.orderService = orderService;
