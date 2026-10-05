@@ -108,8 +108,7 @@ class AssignOrderCommandHandlerImplTest {
             var courier = courierAt(5, 5);
             when(orderRepository.getFirstInCreatedStatus()).thenReturn(Optional.of(order));
             when(courierRepository.getAll()).thenReturn(List.of(courier));
-            when(orderService.assignOrder(order, List.of(courier)))
-                .thenReturn(Result.failure(OrderServiceImpl.Errors.allCouriersAreFullyBookedOrUnavailable()));
+            when(orderService.assignOrder(order, List.of(courier))).thenReturn(Result.failure(OrderServiceImpl.Errors.allCouriersAreFullyBookedOrUnavailable()));
             var command = AssignOrderCommand.create().getValue();
 
             var result = handler.handle(command);

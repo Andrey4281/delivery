@@ -1,0 +1,360 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-10-02T00:00:00.000Z",
+  "__export_source": "opencode:generated-from-openapi",
+  "resources": [
+    {
+      "_id": "wrk_7f3d2a1b4c5e6f708192a3b4c5d6e7f8",
+      "_type": "workspace",
+      "parentId": null,
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "name": "Delivery API",
+      "description": "Коллекция для тестирования API сервиса Delivery (учёт курьеров, диспетчеризация, доставка). Сгенерирована из contracts/openapi.yml.\n\nПорядок работы:\n1. Поднять PostgreSQL и Kafka, запустить сервис (mvn spring-boot:run, порт 8082).\n2. Выбрать окружение Local.\n3. Запустить коллекцию целиком в Collection Runner — courierId и orderId сохранятся в переменные окружения из тестов и подставятся в последующие запросы автоматически.",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_1b2c3d4e5f60718293a4b5c6d7e8f901",
+      "_type": "environment",
+      "parentId": "wrk_7f3d2a1b4c5e6f708192a3b4c5d6e7f8",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "name": "Base Environment",
+      "data": {},
+      "dataPropertyOrder": null,
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "env_2c3d4e5f60718293a4b5c6d7e8f90a1b",
+      "_type": "environment",
+      "parentId": "wrk_7f3d2a1b4c5e6f708192a3b4c5d6e7f8",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "name": "Local",
+      "data": {
+        "base_url": "http://localhost:8082",
+        "courierId": "",
+        "orderId": ""
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "courierId",
+          "orderId"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1000
+    },
+    {
+      "_id": "fld_3d4e5f60718293a4b5c6d7e8f90a1b2c",
+      "_type": "request_group",
+      "parentId": "wrk_7f3d2a1b4c5e6f708192a3b4c5d6e7f8",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "name": "Курьеры",
+      "description": "Сценарии для работы с курьерами: создание, просмотр, перемещение.",
+      "environment": {},
+      "metaSortKey": -9000
+    },
+    {
+      "_id": "req_6f708192a3b4c5d6e7f8091a2b3c4d5e",
+      "_type": "request",
+      "parentId": "fld_3d4e5f60718293a4b5c6d7e8f90a1b2c",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "url": "{{ _.base_url }}/api/v1/couriers",
+      "name": "CreateCourier — добавить курьера",
+      "description": "POST /api/v1/couriers. Ожидается 201. В тестах проверяется наличие courierId в ответе, значение сохраняется в переменную окружения для последующих запросов.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Курьер-{% uuid 'v4' %}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -9003,
+      "isPrivate": false,
+      "preRequestScript": "",
+      "afterResponseScript": "const status = insomnia.response.code;\nlet body = {};\ntry {\n  body = insomnia.response.json();\n} catch (e) {\n  body = {};\n}\n\ninsomnia.test('Курьер создан: статус 201', () => {\n  insomnia.expect(status).to.equal(201);\n});\n\nif (status === 201) {\n  insomnia.test('В ответе передан courierId', () => {\n    insomnia.expect(body).to.have.property('courierId');\n  });\n\n  if (body.courierId) {\n    insomnia.environment.set('courierId', body.courierId);\n  }\n}",
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_708192a3b4c5d6e7f8091a2b3c4d5e6f",
+      "_type": "request",
+      "parentId": "fld_3d4e5f60718293a4b5c6d7e8f90a1b2c",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "url": "{{ _.base_url }}/api/v1/couriers",
+      "name": "GetCouriers — получить всех курьеров",
+      "description": "GET /api/v1/couriers. Ожидается 200 и массив курьеров с полями id, name, location.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -9002,
+      "isPrivate": false,
+      "preRequestScript": "",
+      "afterResponseScript": "const status = insomnia.response.code;\nlet body = null;\ntry {\n  body = insomnia.response.json();\n} catch (e) {\n  body = null;\n}\n\ninsomnia.test('Список курьеров получен: статус 200', () => {\n  insomnia.expect(status).to.equal(200);\n});\n\ninsomnia.test('Ответ — массив', () => {\n  insomnia.expect(body).to.be.an('array');\n});\n\ninsomnia.test('Каждый курьер содержит id, name, location', () => {\n  (body || []).forEach((courier) => {\n    insomnia.expect(courier).to.have.property('id');\n    insomnia.expect(courier).to.have.property('name');\n    insomnia.expect(courier).to.have.property('location');\n  });\n});",
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_8192a3b4c5d6e7f8091a2b3c4d5e6f70",
+      "_type": "request",
+      "parentId": "fld_3d4e5f60718293a4b5c6d7e8f90a1b2c",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "url": "{{ _.base_url }}/api/v1/couriers/{{ courierId }}/move",
+      "name": "MoveCourier — переместить курьера",
+      "description": "POST /api/v1/couriers/{courierId}/move. courierId подставляется из переменной окружения (сохраняется тестом CreateCourier). Ожидается 200.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"x\": 3,\n  \"y\": 4\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -9001,
+      "isPrivate": false,
+      "preRequestScript": "",
+      "afterResponseScript": "insomnia.test('Курьер перемещён: статус 200', () => {\n  insomnia.expect(insomnia.response.code).to.equal(200);\n});",
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_4e5f60718293a4b5c6d7e8f90a1b2c3d",
+      "_type": "request_group",
+      "parentId": "wrk_7f3d2a1b4c5e6f708192a3b4c5d6e7f8",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "name": "Заказы",
+      "description": "Сценарии для работы с заказами: создание, просмотр активных, завершение.",
+      "environment": {},
+      "metaSortKey": -8000
+    },
+    {
+      "_id": "req_9203a4b5c6d7e8f90a1b2c3d4e5f6071",
+      "_type": "request",
+      "parentId": "fld_4e5f60718293a4b5c6d7e8f90a1b2c3d",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "url": "{{ _.base_url }}/api/v1/orders",
+      "name": "CreateOrder — создать заказ",
+      "description": "POST /api/v1/orders. Ожидается 201. В тестах проверяется наличие orderId в ответе, значение сохраняется в переменную окружения для последующих запросов.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"id\": \"{% uuid 'v4' %}\",\n  \"address\": {\n    \"country\": \"Россия\",\n    \"city\": \"Москва\",\n    \"street\": \"Тверская\",\n    \"house\": \"1\",\n    \"apartment\": \"10\"\n  },\n  \"volume\": 5\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -8003,
+      "isPrivate": false,
+      "preRequestScript": "",
+      "afterResponseScript": "const status = insomnia.response.code;\nlet body = {};\ntry {\n  body = insomnia.response.json();\n} catch (e) {\n  body = {};\n}\n\ninsomnia.test('Заказ создан: статус 201', () => {\n  insomnia.expect(status).to.equal(201);\n});\n\nif (status === 201) {\n  insomnia.test('В ответе передан orderId', () => {\n    insomnia.expect(body).to.have.property('orderId');\n  });\n\n  if (body.orderId) {\n    insomnia.environment.set('orderId', body.orderId);\n  }\n}",
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_a314b5c6d7e8f90a1b2c3d4e5f607182",
+      "_type": "request",
+      "parentId": "fld_4e5f60718293a4b5c6d7e8f90a1b2c3d",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "url": "{{ _.base_url }}/api/v1/orders/active",
+      "name": "GetOrders — получить незавершённые заказы",
+      "description": "GET /api/v1/orders/active. Ожидается 200 и массив заказов с полями id, location. Дополнительно проверяется, что созданный ранее заказ присутствует в списке.",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -8002,
+      "isPrivate": false,
+      "preRequestScript": "",
+      "afterResponseScript": "const status = insomnia.response.code;\nlet body = null;\ntry {\n  body = insomnia.response.json();\n} catch (e) {\n  body = null;\n}\n\ninsomnia.test('Список активных заказов получен: статус 200', () => {\n  insomnia.expect(status).to.equal(200);\n});\n\ninsomnia.test('Ответ — массив', () => {\n  insomnia.expect(body).to.be.an('array');\n});\n\ninsomnia.test('Каждый заказ содержит id и location', () => {\n  (body || []).forEach((order) => {\n    insomnia.expect(order).to.have.property('id');\n    insomnia.expect(order).to.have.property('location');\n  });\n});\n\nconst orderId = insomnia.environment.get('orderId');\nif (orderId) {\n  insomnia.test('Созданный заказ присутствует в списке активных', () => {\n    insomnia.expect((body || []).some((order) => order.id === orderId)).to.be.true;\n  });\n}",
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_b425c6d7e8f90a1b2c3d4e5f60718293",
+      "_type": "request",
+      "parentId": "fld_4e5f60718293a4b5c6d7e8f90a1b2c3d",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "url": "{{ _.base_url }}/api/v1/couriers/{{ courierId }}/orders/{{ orderId }}/complete",
+      "name": "CompleteOrder — завершить заказ",
+      "description": "POST /api/v1/couriers/{courierId}/orders/{orderId}/complete. courierId и orderId берутся из переменных окружения. Допустимые исходы по контракту: 200 — заказ завершён; 409 — заказ ещё не назначен курьеру (диспетчеризация происходит через событие из basket.events в Kafka).",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -8001,
+      "isPrivate": false,
+      "preRequestScript": "",
+      "afterResponseScript": "insomnia.test('Статус 200 (заказ завершён) или 409 (заказ ещё не назначен курьеру)', () => {\n  insomnia.expect([200, 409]).to.include(insomnia.response.code);\n});",
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_5f60718293a4b5c6d7e8f90a1b2c3d4e",
+      "_type": "request_group",
+      "parentId": "wrk_7f3d2a1b4c5e6f708192a3b4c5d6e7f8",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "name": "Негативные сценарии",
+      "description": "Проверка контракта: некорректные параметры (volume < 0, координаты < 0, пустое имя) должны отклоняться с кодом 400.",
+      "environment": {},
+      "metaSortKey": -7000
+    },
+    {
+      "_id": "req_c536d7e8f90a1b2c3d4e5f60718294a5",
+      "_type": "request",
+      "parentId": "fld_5f60718293a4b5c6d7e8f90a1b2c3d4e",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "url": "{{ _.base_url }}/api/v1/couriers",
+      "name": "CreateCourier — пустое имя (400)",
+      "description": "Нарушение контракта NewCourier: minLength: 1 у name. Ожидается 400.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -7003,
+      "isPrivate": false,
+      "preRequestScript": "",
+      "afterResponseScript": "insomnia.test('Некорректный запрос отклонён: статус 400', () => {\n  insomnia.expect(insomnia.response.code).to.equal(400);\n});",
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_d647e8f90a1b2c3d4e5f60718295b6c7",
+      "_type": "request",
+      "parentId": "fld_5f60718293a4b5c6d7e8f90a1b2c3d4e",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "url": "{{ _.base_url }}/api/v1/orders",
+      "name": "CreateOrder — отрицательный volume (400)",
+      "description": "Нарушение контракта NewOrder: minimum: 0 у volume. Ожидается 400.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"id\": \"11111111-1111-4111-8111-111111111111\",\n  \"address\": {\n    \"country\": \"Россия\",\n    \"city\": \"Москва\",\n    \"street\": \"Тверская\",\n    \"house\": \"1\",\n    \"apartment\": \"10\"\n  },\n  \"volume\": -1\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -7002,
+      "isPrivate": false,
+      "preRequestScript": "",
+      "afterResponseScript": "insomnia.test('Некорректный запрос отклонён: статус 400', () => {\n  insomnia.expect(insomnia.response.code).to.equal(400);\n});",
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_e758f90a1b2c3d4e5f60718296c7d8e9",
+      "_type": "request",
+      "parentId": "fld_5f60718293a4b5c6d7e8f90a1b2c3d4e",
+      "modified": 1791000000000,
+      "created": 1791000000000,
+      "url": "{{ _.base_url }}/api/v1/couriers/{{ courierId }}/move",
+      "name": "MoveCourier — отрицательные координаты (400)",
+      "description": "Нарушение контракта Location: minimum: 0 у x и y. Ожидается 400. courierId подставляется из переменной окружения.",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"x\": -1,\n  \"y\": 1\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -7001,
+      "isPrivate": false,
+      "preRequestScript": "",
+      "afterResponseScript": "insomnia.test('Некорректный запрос отклонён: статус 400', () => {\n  insomnia.expect(insomnia.response.code).to.equal(400);\n});",
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    }
+  ]
+}

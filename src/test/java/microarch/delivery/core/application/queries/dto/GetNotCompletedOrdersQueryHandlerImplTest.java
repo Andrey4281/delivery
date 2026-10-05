@@ -33,8 +33,7 @@ class GetNotCompletedOrdersQueryHandlerImplTest {
     }
 
     private Order createdOrder(int x, int y) {
-        return Order.create(UUID.randomUUID(), Location.create(x, y).getValue(), Volume.create(3).getValue())
-                .getValue();
+        return Order.create(UUID.randomUUID(), Location.create(x, y).getValue(), Volume.create(3).getValue()).getValue();
     }
 
     private Order assignedOrder(int x, int y) {
@@ -48,8 +47,7 @@ class GetNotCompletedOrdersQueryHandlerImplTest {
     void returnsDtoForCreatedAndAssignedOrders() {
         var created = createdOrder(1, 2);
         var assigned = assignedOrder(9, 8);
-        when(orderRepository.findAllByOrderStatusOrOrderStatus(OrderStatus.CREATED, OrderStatus.ASSIGNED))
-                .thenReturn(List.of(created, assigned));
+        when(orderRepository.findAllByOrderStatusOrOrderStatus(OrderStatus.CREATED, OrderStatus.ASSIGNED)).thenReturn(List.of(created, assigned));
 
         var result = handler.handle();
 
