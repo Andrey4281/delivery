@@ -1,11 +1,19 @@
 package microarch.delivery.core.application.command;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import java.util.UUID;
+import libs.errs.GeneralErrors;
+import libs.errs.Result;
+import microarch.delivery.core.domain.model.Address;
+import microarch.delivery.core.domain.model.Location;
 import microarch.delivery.core.domain.model.order.Order;
+import microarch.delivery.core.ports.GeoClient;
 import microarch.delivery.core.ports.OrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +32,9 @@ class CreateOrderCommandHandlerImplTest {
     @Mock
     private OrderRepository orderRepository;
 
+    @Mock
+    private GeoClient geoClient;
+
     @Captor
     private ArgumentCaptor<Order> orderCaptor;
 
@@ -31,7 +42,7 @@ class CreateOrderCommandHandlerImplTest {
 
     @BeforeEach
     void setUp() {
-        handler = new CreateOrderCommandHandlerImpl(orderRepository);
+        handler = new CreateOrderCommandHandlerImpl(orderRepository, geoClient);
     }
 
     @Nested
@@ -43,30 +54,48 @@ class CreateOrderCommandHandlerImplTest {
         void createsOrderAndSavesToRepository() {
             var orderID = UUID.randomUUID();
             var command = CreateOrderCommand.create(orderID, "Russia", "Moscow", "Lenina", "10", "5", 3).getValue();
+            var location = Location.create(5, 7).getValue();
+            when(geoClient.getLocation(any(Address.class))).thenReturn(Result.success(location));
 
             var result = handler.handle(command);
 
             assertThat(result.isSuccess()).isTrue();
+            verify(geoClient).getLocation(command.getAddress());
             verify(orderRepository).add(orderCaptor.capture());
             var savedOrder = orderCaptor.getValue();
             assertThat(savedOrder.getId()).isEqualTo(orderID);
             assertThat(savedOrder.getVolume().getValue()).isEqualTo(3);
+            assertThat(savedOrder.getLocation()).isEqualTo(location);
             assertThat(savedOrder.getOrderStatus()).isEqualTo(microarch.delivery.core.domain.model.order.OrderStatus.CREATED);
         }
 
         @Test
-        @DisplayName("создаёт заказ со случайной Location в допустимом диапазоне")
-        void createsOrderWithRandomLocationInRange() {
+        @DisplayName("сохраняет заказ с Location, полученной от GeoClient")
+        void savesOrderWithLocationFromGeoClient() {
             var command = CreateOrderCommand.create(UUID.randomUUID(), "Russia", "Moscow", "Lenina", "10", "5", 3).getValue();
+            var location = Location.create(3, 4).getValue();
+            when(geoClient.getLocation(any(Address.class))).thenReturn(Result.success(location));
 
             var result = handler.handle(command);
 
             assertThat(result.isSuccess()).isTrue();
             verify(orderRepository).add(orderCaptor.capture());
             var savedOrder = orderCaptor.getValue();
-            var location = savedOrder.getLocation();
-            assertThat(location.getX()).isBetween(1, 10);
-            assertThat(location.getY()).isBetween(1, 10);
+            assertThat(savedOrder.getLocation()).isEqualTo(location);
+        }
+
+        @Test
+        @DisplayName("возвращает ошибку, когда GeoClient не смог определить Location")
+        void returnsErrorWhenGeoClientFails() {
+            var command = CreateOrderCommand.create(UUID.randomUUID(), "Russia", "Moscow", "Lenina", "10", "5", 3).getValue();
+            var error = GeneralErrors.valueIsRequired("location");
+            when(geoClient.getLocation(any(Address.class))).thenReturn(Result.failure(error));
+
+            var result = handler.handle(command);
+
+            assertThat(result.isFailure()).isTrue();
+            assertThat(result.getError()).isEqualTo(error);
+            verifyNoInteractions(orderRepository);
         }
 
         @Test
@@ -82,19 +111,26 @@ class CreateOrderCommandHandlerImplTest {
         void handlesValidAddress() {
             var orderID = UUID.randomUUID();
             var command = CreateOrderCommand.create(orderID, "Russia", "Moscow", "Lenina", "10", "5", 3).getValue();
+            when(geoClient.getLocation(any(Address.class))).thenReturn(Result.success(Location.create(1, 1).getValue()));
 
             var result = handler.handle(command);
 
             assertThat(result.isSuccess()).isTrue();
+            verify(geoClient).getLocation(command.getAddress());
             verify(orderRepository).add(orderCaptor.capture());
         }
 
         @Test
-        @DisplayName("создаёт несколько заказов с разными случайными Location")
-        void createsMultipleOrdersWithDifferentRandomLocations() {
+        @DisplayName("создаёт несколько заказов с Location от GeoClient")
+        void createsMultipleOrdersWithLocationsFromGeoClient() {
             var command1 = CreateOrderCommand.create(UUID.randomUUID(), "Russia", "Moscow", "Lenina", "10", "5", 3).getValue();
 
-            var command2 = CreateOrderCommand.create(UUID.randomUUID(), "Russia", "Moscow", "Lenina", "10", "5", 3).getValue();
+            var command2 = CreateOrderCommand.create(UUID.randomUUID(), "Russia", "Moscow", "Tverskaya", "8", "2", 4).getValue();
+
+            var location1 = Location.create(2, 3).getValue();
+            var location2 = Location.create(8, 9).getValue();
+            when(geoClient.getLocation(command1.getAddress())).thenReturn(Result.success(location1));
+            when(geoClient.getLocation(command2.getAddress())).thenReturn(Result.success(location2));
 
             var result1 = handler.handle(command1);
             var result2 = handler.handle(command2);
@@ -105,6 +141,8 @@ class CreateOrderCommandHandlerImplTest {
             verify(orderRepository, times(2)).add(orderCaptor.capture());
             var allOrders = orderCaptor.getAllValues();
             assertThat(allOrders).hasSize(2);
+            assertThat(allOrders.get(0).getLocation()).isEqualTo(location1);
+            assertThat(allOrders.get(1).getLocation()).isEqualTo(location2);
         }
     }
 
