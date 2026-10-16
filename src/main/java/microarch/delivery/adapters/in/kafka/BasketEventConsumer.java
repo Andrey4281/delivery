@@ -20,14 +20,8 @@ public class BasketEventConsumer {
         try {
             var event = BasketEventsProto.BasketConfirmedIntegrationEvent.parseFrom(message);
             BasketEventsProto.Address address = event.getAddress();
-            var createOrderCommandResult = CreateOrderCommand.create(UUID.fromString(event.getBasketId()),
-                address.getCountry(),
-                address.getCity(),
-                address.getStreet(),
-                address.getHouse(),
-                address.getApartment(),
-                event.getVolume()
-                );
+            var createOrderCommandResult = CreateOrderCommand.create(UUID.fromString(event.getBasketId()), address.getCountry(), address.getCity(), address.getStreet(),
+                    address.getHouse(), address.getApartment(), event.getVolume());
             if (createOrderCommandResult.isFailure()) {
                 log.error("Failed to create CreateOrderCommand: {}", createOrderCommandResult.getError());
                 return;
