@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import java.util.UUID;
+import microarch.delivery.SimpleDomainEventPublisher;
 import microarch.delivery.core.domain.model.Location;
 import microarch.delivery.core.domain.model.Volume;
 import microarch.delivery.core.domain.model.courier.Courier;
@@ -36,6 +37,9 @@ class CompleteOrderCommandHandlerImplTest {
     @Mock
     private OrderRepository orderRepository;
 
+    @Mock
+    private SimpleDomainEventPublisher simpleDomainEventPublisher;
+
     @Captor
     private ArgumentCaptor<Courier> courierCaptor;
 
@@ -48,7 +52,7 @@ class CompleteOrderCommandHandlerImplTest {
 
     @BeforeEach
     void setUp() {
-        handler = new CompleteOrderCommandHandlerImpl(courierRepository, orderRepository);
+        handler = new CompleteOrderCommandHandlerImpl(courierRepository, orderRepository, simpleDomainEventPublisher);
         orderId = UUID.randomUUID();
     }
 
