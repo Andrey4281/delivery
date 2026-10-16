@@ -20,7 +20,7 @@ public class BasketEventConsumer {
         try {
             var event = BasketEventsProto.BasketConfirmedIntegrationEvent.parseFrom(message);
             BasketEventsProto.Address address = event.getAddress();
-            var createOrderCommandResult = CreateOrderCommand.create(UUID.randomUUID(),
+            var createOrderCommandResult = CreateOrderCommand.create(UUID.fromString(event.getBasketId()),
                 address.getCountry(),
                 address.getCity(),
                 address.getStreet(),
