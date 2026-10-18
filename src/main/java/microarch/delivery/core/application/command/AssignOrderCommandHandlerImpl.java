@@ -1,16 +1,15 @@
 package microarch.delivery.core.application.command;
 
+import java.util.List;
 import libs.ddd.DomainEventPublisher;
 import libs.errs.Error;
 import libs.errs.UnitResult;
-import microarch.delivery.SimpleDomainEventPublisher;
 import microarch.delivery.core.domain.services.OrderService;
 import microarch.delivery.core.ports.CourierRepository;
 import microarch.delivery.core.ports.OrderRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
 
 @Service
 public class AssignOrderCommandHandlerImpl implements AssignOrderCommandHandler {
@@ -20,7 +19,7 @@ public class AssignOrderCommandHandlerImpl implements AssignOrderCommandHandler 
     private final DomainEventPublisher domainEventPublisher;
 
     public AssignOrderCommandHandlerImpl(OrderRepository orderRepository, CourierRepository courierRepository, OrderService orderService,
-            @Qualifier("simpleDomainEventPublisher") DomainEventPublisher domainEventPublisher) {
+            @Qualifier("outboxDomainEventPublisher") DomainEventPublisher domainEventPublisher) {
         this.orderRepository = orderRepository;
         this.courierRepository = courierRepository;
         this.orderService = orderService;
