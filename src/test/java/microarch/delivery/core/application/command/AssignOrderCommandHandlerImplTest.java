@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import libs.errs.Result;
+import microarch.delivery.SimpleDomainEventPublisher;
 import microarch.delivery.core.domain.model.Location;
 import microarch.delivery.core.domain.model.Volume;
 import microarch.delivery.core.domain.model.courier.Courier;
@@ -42,6 +43,9 @@ class AssignOrderCommandHandlerImplTest {
     @Mock
     private OrderService orderService;
 
+    @Mock
+    private SimpleDomainEventPublisher simpleDomainEventPublisher;
+
     @Captor
     private ArgumentCaptor<Order> orderCaptor;
 
@@ -52,7 +56,7 @@ class AssignOrderCommandHandlerImplTest {
 
     @BeforeEach
     void setUp() {
-        handler = new AssignOrderCommandHandlerImpl(orderRepository, courierRepository, orderService);
+        handler = new AssignOrderCommandHandlerImpl(orderRepository, courierRepository, orderService, simpleDomainEventPublisher);
     }
 
     private Order createdOrder() {
