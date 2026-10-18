@@ -1,11 +1,13 @@
 package microarch.delivery.core.application.command;
 
+import libs.ddd.DomainEventPublisher;
 import libs.errs.Error;
 import libs.errs.UnitResult;
 import microarch.delivery.SimpleDomainEventPublisher;
 import microarch.delivery.core.domain.services.OrderService;
 import microarch.delivery.core.ports.CourierRepository;
 import microarch.delivery.core.ports.OrderRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -15,14 +17,14 @@ public class AssignOrderCommandHandlerImpl implements AssignOrderCommandHandler 
     private final OrderRepository orderRepository;
     private final CourierRepository courierRepository;
     private final OrderService orderService;
-    private final SimpleDomainEventPublisher simpleDomainEventPublisher;
+    private final DomainEventPublisher domainEventPublisher;
 
     public AssignOrderCommandHandlerImpl(OrderRepository orderRepository, CourierRepository courierRepository, OrderService orderService,
-            SimpleDomainEventPublisher simpleDomainEventPublisher) {
+            @Qualifier("simpleDomainEventPublisher") DomainEventPublisher domainEventPublisher) {
         this.orderRepository = orderRepository;
         this.courierRepository = courierRepository;
         this.orderService = orderService;
-        this.simpleDomainEventPublisher = simpleDomainEventPublisher;
+        this.domainEventPublisher = domainEventPublisher;
     }
 
     @Override
@@ -41,7 +43,7 @@ public class AssignOrderCommandHandlerImpl implements AssignOrderCommandHandler 
 
         orderRepository.update(order.get());
         courierRepository.update(assignResult.getValue());
-        simpleDomainEventPublisher.publish(List.of(order.get()));
+        domainEventPublisher.publish(List.of(order.get()));
         return UnitResult.success();
     }
 }
