@@ -1,25 +1,26 @@
 package microarch.delivery.core.application.command;
 
+import java.util.List;
+import libs.ddd.DomainEventPublisher;
 import libs.errs.Error;
 import libs.errs.GeneralErrors;
 import libs.errs.UnitResult;
-import microarch.delivery.SimpleDomainEventPublisher;
 import microarch.delivery.core.ports.CourierRepository;
 import microarch.delivery.core.ports.OrderRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
 
 @Service
 public class CompleteOrderCommandHandlerImpl implements CompleteOrderCommandHandler {
     private final CourierRepository courierRepository;
     private final OrderRepository orderRepository;
-    private final SimpleDomainEventPublisher simpleDomainEventPublisher;
+    private final DomainEventPublisher domainEventPublisher;
 
-    public CompleteOrderCommandHandlerImpl(CourierRepository courierRepository, OrderRepository orderRepository, SimpleDomainEventPublisher simpleDomainEventPublisher) {
+    public CompleteOrderCommandHandlerImpl(CourierRepository courierRepository, OrderRepository orderRepository, @Qualifier("outboxDomainEventPublisher") DomainEventPublisher domainEventPublisher) {
         this.courierRepository = courierRepository;
         this.orderRepository = orderRepository;
-        this.simpleDomainEventPublisher = simpleDomainEventPublisher;
+        this.domainEventPublisher = domainEventPublisher;
     }
 
     @Override
@@ -47,7 +48,7 @@ public class CompleteOrderCommandHandlerImpl implements CompleteOrderCommandHand
 
         courierRepository.update(courier.get());
         orderRepository.update(order.get());
-        simpleDomainEventPublisher.publish(List.of(order.get()));
+        domainEventPublisher.publish(List.of(order.get()));
         return UnitResult.success();
     }
 }
